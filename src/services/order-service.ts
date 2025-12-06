@@ -1,10 +1,10 @@
-import { PrismaClient } from '../../generated/prisma';
-
-const prisma = new PrismaClient();
+import { prismaClient } from '../utils/database-util';
+import { ResponseError } from '../error/response-error';
+import { OrderValidation } from '../../validations/order-validation';
+import { Validation } from '../../validations/validation';
 
 export class OrderService {
   // Calculate estimated arrival time
-  // Formula: 10 minutes per item + 10 minutes for delivery
   private calculateETA(itemCount: number): Date {
     const now = new Date();
     const totalMinutes = itemCount * 10 + 10;
@@ -18,31 +18,33 @@ export class OrderService {
     restaurantId: number;
     itemCount: number;
   }) {
-    // Verify customer exists
-    const customer = await prisma.customer.findUnique({
-      where: { id: data.customerId },
-    });
 
+    const normalized = {
+      customerId: data.customerId,
+      restaurantId: data.restaurantId,
+      itemAmount: (data as any).itemAmount ?? data.itemCount,
+    };
+
+    const validated = Validation.validate(OrderValidation.CREATE, normalized as any);
+
+    // Verify customer exists
+    const customer = await prismaClient.customer.findUnique({ where: { id: validated.customerId } });
     if (!customer) {
-      throw new Error('Customer not found');
+      throw new ResponseError(404, 'Customer not found');
     }
 
     // Verify restaurant exists
-    const restaurant = await prisma.restaurant.findUnique({
-      where: { id: data.restaurantId },
-    });
-
+    const restaurant = await prismaClient.restaurant.findUnique({ where: { id: validated.restaurantId } });
     if (!restaurant) {
-      throw new Error('Restaurant not found');
+      throw new ResponseError(404, 'Restaurant not found');
     }
 
-    // Calculate ETA
-    // Create order using new schema field names
-    const order = await prisma.order.create({
+    // Create order
+    const order = await prismaClient.order.create({
       data: {
-        customer_id: data.customerId,
-        restaurant_id: data.restaurantId,
-        item_amount: data.itemCount,
+        customer_id: validated.customerId,
+        restaurant_id: validated.restaurantId,
+        item_amount: validated.itemAmount,
       },
       include: {
         customer: true,
@@ -55,7 +57,7 @@ export class OrderService {
 
   // Get orders by customer
   async getOrdersByCustomer(customerId: number) {
-    return await prisma.order.findMany({
+    return await prismaClient.order.findMany({
       where: { customer_id: customerId },
       include: {
         customer: true,
@@ -67,7 +69,7 @@ export class OrderService {
 
   // Get orders by restaurant
   async getOrdersByRestaurant(restaurantId: number) {
-    return await prisma.order.findMany({
+    return await prismaClient.order.findMany({
       where: { restaurant_id: restaurantId },
       include: {
         customer: true,
@@ -79,7 +81,7 @@ export class OrderService {
 
   // Get all orders with time information
   async getOrdersWithTime() {
-    const orders = await prisma.order.findMany({
+    const orders = await prismaClient.order.findMany({
       include: {
         customer: true,
         restaurant: true,
