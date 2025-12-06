@@ -1,10 +1,20 @@
 import { PrismaClient } from '../../generated/prisma';
+import { ResponseError } from '../error/response-error';
 
 const prisma = new PrismaClient();
 
 export class RestaurantService {
   // Create new restaurant
-  static async create(data: { name: string; description: string; is_opened?: boolean }) {
+  async createRestaurant(data: {
+    name: string;
+    description: string;
+    is_opened?: boolean;
+  }) {
+    // Strict: only accept boolean for is_opened when provided
+    if (data.is_opened !== undefined && typeof data.is_opened !== 'boolean') {
+      throw new ResponseError(400, 'is_opened must be a boolean');
+    }
+
     return await prisma.restaurant.create({
       data: {
         name: data.name,
@@ -14,19 +24,17 @@ export class RestaurantService {
     });
   }
 
-  // List restaurants; optional status filter ('opened'|'closed')
-  static async list(status?: string) {
-    if (status === 'opened') {
-      return await prisma.restaurant.findMany({ where: { is_opened: true }, include: { orders: true } });
-    }
-    if (status === 'closed') {
-      return await prisma.restaurant.findMany({ where: { is_opened: false }, include: { orders: true } });
-    }
-    return await prisma.restaurant.findMany({ include: { orders: true } });
+  // Get all restaurants
+  async getAllRestaurants() {
+    return await prisma.restaurant.findMany({
+      include: {
+        orders: true,
+      },
+    });
   }
 
   // Get restaurant by ID with relations
-  static async get(id: number) {
+  async getRestaurantById(id: number) {
     return await prisma.restaurant.findUnique({
       where: { id },
       include: {
@@ -39,20 +47,46 @@ export class RestaurantService {
     });
   }
 
-  // Update restaurant (accepts partial fields)
-  static async update(id: number, data: { name?: string; description?: string; is_opened?: boolean }) {
-    const updateData: any = {};
-    if (data.name !== undefined) updateData.name = data.name;
-    if (data.description !== undefined) updateData.description = data.description;
-    if (data.is_opened !== undefined) updateData.is_opened = data.is_opened;
+  // Get restaurants by open/closed status
+  async getRestaurantsByStatus(isOpen: boolean) {
+    return await prisma.restaurant.findMany({
+      where: { is_opened: isOpen },
+      include: {
+        orders: true,
+      },
+    });
+  }
 
-    return await prisma.restaurant.update({ where: { id }, data: updateData });
+  // Update restaurant name
+  async updateRestaurantName(id: number, name: string) {
+    return await prisma.restaurant.update({
+      where: { id },
+      data: { name },
+    });
+  }
+
+  // Update restaurant description
+  async updateRestaurantDescription(id: number, description: string) {
+    return await prisma.restaurant.update({
+      where: { id },
+      data: { description },
+    });
+  }
+
+  // Update restaurant status (open/closed)
+  async updateRestaurantStatus(id: number, isOpen: boolean) {
+    return await prisma.restaurant.update({
+      where: { id },
+      data: { is_opened: isOpen },
+    });
   }
 
   // Delete restaurant
-  static async delete(id: number) {
-    return await prisma.restaurant.delete({ where: { id } });
+  async deleteRestaurant(id: number) {
+    return await prisma.restaurant.delete({
+      where: { id },
+    });
   }
 }
 
-export default RestaurantService;
+export default new RestaurantService();
