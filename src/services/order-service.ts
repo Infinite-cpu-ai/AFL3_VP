@@ -90,15 +90,25 @@ export class OrderService {
     });
 
     // Format the response to include time information
-    return orders.map((order) => ({
-      ...order,
-      orderTime: order.order_time,
-      estimatedArrivalTime: undefined,
-      itemCount: order.item_amount,
-      preparationTime: `${order.item_amount * 10} minutes`,
-      deliveryTime: '10 minutes',
-      totalTime: `${order.item_amount * 10 + 10} minutes`,
-    }));
+    return orders.map((order) => {
+      const orderTime = order.order_time instanceof Date ? order.order_time : new Date(order.order_time);
+      const prepMinutes = (order.item_amount ?? 0) * 10;
+      const deliveryMinutes = 10;
+      const totalMinutes = prepMinutes + deliveryMinutes;
+
+      const estimatedArrivalTime = new Date(orderTime.getTime());
+      estimatedArrivalTime.setMinutes(estimatedArrivalTime.getMinutes() + totalMinutes);
+
+      return {
+        ...order,
+        orderTime,
+        estimatedArrivalTime,
+        itemCount: order.item_amount,
+        preparationTime: `${prepMinutes} minutes`,
+        deliveryTime: `${deliveryMinutes} minutes`,
+        totalTime: `${totalMinutes} minutes`,
+      };
+    });
   }
 }
 

@@ -41,6 +41,28 @@ export class OrderController {
       next(error);
     }
   }
+
+  // Return only order time for all orders (or filtered by query)
+  static async time(req: Request, res: Response, next: NextFunction) {
+    try {
+      const orders = await OrderService.getOrdersWithTime();
+      const payload = orders.map((o: any) => ({ id: o.id, orderTime: o.orderTime }));
+      res.status(200).json({ data: payload });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Return only estimated arrival time for all orders
+  static async eta(req: Request, res: Response, next: NextFunction) {
+    try {
+      const orders = await OrderService.getOrdersWithTime();
+      const payload = orders.map((o: any) => ({ id: o.id, itemCount: o.itemCount ?? o.item_amount, estimatedArrivalTime: o.estimatedArrivalTime }));
+      res.status(200).json({ data: payload });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const createOrder = (req: Request, res: Response, next: NextFunction) =>
