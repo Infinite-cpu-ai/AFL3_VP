@@ -27,9 +27,9 @@ export interface OrderWithDetails extends Order {
 }
 
 export interface OrderTimeInfo extends OrderWithDetails {
-  orderTime: Date;  // When the order was placed
-  estimatedArrivalTime?: Date;  // ETA calculation result
-  preparationTime: string;  // item_amount * 10 minutes
-  deliveryTime: string;  // Fixed 10 minutes
-  totalTime: string;  // Total ETA
+  orderTime: Date; 
+  estimatedArrivalTime?: Date; 
+  preparationTime: string;  
+  deliveryTime: string; 
+  totalTime: string;  
 }
