@@ -21,11 +21,11 @@ async function main() {
 
   //RESTAURANTS
   console.log('Creating restaurants...');
-  const restaurant1 = await prisma.restaurant.create({ data: { name: 'Pizza Palace', description: 'Best pizza in town with fresh ingredients', is_opened: true } });
+  const restaurant1 = await prisma.restaurant.create({ data: { name: 'Paus Puas', description: 'Cheapest snack in town', is_opened: true } });
 
-  const restaurant2 = await prisma.restaurant.create({ data: { name: 'Burger House', description: 'Juicy burgers and crispy fries', is_opened: true } });
+  const restaurant2 = await prisma.restaurant.create({ data: { name: 'Cincau Classic', description: 'Juicy chicken smash and ice tea', is_opened: true } });
 
-  const restaurant3 = await prisma.restaurant.create({ data: { name: 'Sushi Garden', description: 'Authentic Japanese sushi and ramen', is_opened: false } });
+  const restaurant3 = await prisma.restaurant.create({ data: { name: 'Uncle Tan', description: 'Authentic Fried rice and kuah', is_opened: false } });
 
   console.log(`Created 3 restaurants`);
 
