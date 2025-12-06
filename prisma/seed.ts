@@ -29,7 +29,6 @@ async function main() {
 
   console.log(`Created 3 restaurants`);
 
-  //10 minutes per item + 10 minutes for delivery
   const calculateETA = (itemCount: number): Date => {
     const now = new Date();
     const totalMinutes = itemCount * 10 + 10;
